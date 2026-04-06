@@ -1,0 +1,183 @@
+{
+  "info": {
+    "name": "Clinical Management System API",
+    "_postman_id": "cms-api-collection-v1",
+    "description": "Complete API collection for the Doc CMS Spring Boot backend running on http://localhost:8080",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080/api", "type": "string" },
+    { "key": "bookingId", "value": "", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Bookings",
+      "item": [
+        {
+          "name": "Create Booking (In-Person)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "pm.collectionVariables.set('bookingId', json.id);",
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Has id', () => pm.expect(json.id).to.not.be.undefined);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/bookings",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Ravi Kumar\",\n  \"phone\": \"9876543210\",\n  \"email\": \"ravi.kumar@example.com\",\n  \"isNewPatient\": true,\n  \"insurance\": \"Star Health\",\n  \"type\": \"in-person\",\n  \"specialty\": \"Cardiology\",\n  \"date\": \"April 5, 2026\",\n  \"time\": \"10:00 AM\",\n  \"reason\": \"Chest pain evaluation\",\n  \"chronicConditions\": [\"Hypertension\"],\n  \"allergies\": [\"Penicillin\"]\n}"
+            }
+          }
+        },
+        {
+          "name": "Create Booking (Telehealth)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/bookings",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Priya Sharma\",\n  \"phone\": \"9123456789\",\n  \"email\": \"priya.sharma@example.com\",\n  \"isNewPatient\": false,\n  \"type\": \"telehealth\",\n  \"specialty\": \"Neurology\",\n  \"date\": \"April 5, 2026\",\n  \"time\": \"02:00 PM\",\n  \"reason\": \"Migraine follow-up\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get All Bookings",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/bookings"
+          }
+        },
+        {
+          "name": "Get Booking by ID",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/bookings/{{bookingId}}"
+          }
+        },
+        {
+          "name": "Update Status → arrived",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/bookings/{{bookingId}}/status",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"arrived\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Update Status → in_session",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/bookings/{{bookingId}}/status",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"in_session\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Update Status → completed",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/bookings/{{bookingId}}/status",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"completed\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Assign Room & Token",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/bookings/{{bookingId}}/room",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"roomAssigned\": \"Room 2\",\n  \"token\": \"A-101\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Set Telehealth Link",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/bookings/{{bookingId}}/telehealth",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"telehealthLink\": \"https://meet.google.com/abc-defg-hij\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Update Clinical Encounter (Vitals + Rx + Notes)",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/bookings/{{bookingId}}/clinical",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"doctorNotes\": \"Patient presents with elevated BP. ECG normal. Follow-up in 2 weeks.\",\n  \"vitals\": {\n    \"bp\": \"138/88\",\n    \"hr\": \"82\",\n    \"temp\": \"98.4\",\n    \"weight\": \"72 kg\"\n  },\n  \"prescriptions\": [\n    {\n      \"name\": \"Amlodipine\",\n      \"dosage\": \"5mg\",\n      \"instructions\": \"Take once daily\",\n      \"timing\": \"After Food\",\n      \"frequency\": \"Morning\",\n      \"comments\": \"Monitor BP weekly\",\n      \"status\": \"pending\"\n    },\n    {\n      \"name\": \"Aspirin\",\n      \"dosage\": \"75mg\",\n      \"instructions\": \"Take with water\",\n      \"timing\": \"After Food\",\n      \"frequency\": \"Morning & Night\",\n      \"comments\": \"Do not crush\",\n      \"status\": \"pending\"\n    }\n  ],\n  \"labRequests\": [\"CBC\", \"Lipid Profile\", \"ECG\"]\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Patient",
+      "item": [
+        {
+          "name": "Get Patient History",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/bookings/history?email=ravi.kumar@example.com",
+              "host": ["{{baseUrl}}"],
+              "path": ["bookings", "history"],
+              "query": [{ "key": "email", "value": "ravi.kumar@example.com" }]
+            }
+          }
+        },
+        {
+          "name": "Update Patient Profile (Conditions & Allergies)",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/bookings/patient/ravi.kumar@example.com",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"chronicConditions\": [\"Hypertension\", \"Type 2 Diabetes\"],\n  \"allergies\": [\"Penicillin\", \"Sulfa drugs\"]\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Live Queue",
+      "item": [
+        {
+          "name": "Get Active Queue (Today)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/bookings/queue"
+          }
+        }
+      ]
+    }
+  ]
+}
