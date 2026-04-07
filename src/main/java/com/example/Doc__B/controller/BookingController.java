@@ -1,5 +1,6 @@
 package com.example.Doc__B.controller;
 
+import com.example.Doc__B.dto.AnalyticsDto;
 import com.example.Doc__B.dto.BookingDataDto;
 import com.example.Doc__B.service.BookingService;
 import org.springframework.http.ResponseEntity;
@@ -66,5 +67,10 @@ public class BookingController {
     @PutMapping("/patient/{email}")
     public ResponseEntity<BookingDataDto> updatePatientProfile(@PathVariable String email, @RequestBody BookingDataDto dto) {
         return ResponseEntity.ok(bookingService.updatePatientProfile(email, dto));
+    }
+
+    @GetMapping("/analytics")
+    public ResponseEntity<AnalyticsDto> getAnalytics() {
+        return ResponseEntity.ok(bookingService.getAnalytics());
     }
 }

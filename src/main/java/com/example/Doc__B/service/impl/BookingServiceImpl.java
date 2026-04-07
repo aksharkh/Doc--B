@@ -1,5 +1,6 @@
 package com.example.Doc__B.service.impl;
 
+import com.example.Doc__B.dto.AnalyticsDto;
 import com.example.Doc__B.dto.BookingDataDto;
 import com.example.Doc__B.dto.PrescriptionDto;
 import com.example.Doc__B.dto.VitalsDto;
@@ -18,6 +19,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -132,6 +134,19 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = bookingRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Booking not found with id: " + id));
         booking.setStatus(status);
+
+        // If newly arrived, auto-assign token and room if they don't exist
+        if (status.equals("arrived") && (booking.getToken() == null || booking.getToken().isEmpty())) {
+            List<String> statuses = Arrays.asList("arrived", "in_session", "completed");
+            long arrivedTodayCount = bookingRepository.findActiveQueue(booking.getDate(), statuses).size();
+            String nextToken = "T-" + (arrivedTodayCount + 1);
+            booking.setToken(nextToken);
+
+            if (booking.getRoomAssigned() == null || booking.getRoomAssigned().isEmpty()) {
+                booking.setRoomAssigned("Room 1");
+            }
+        }
+
         return mapToDto(bookingRepository.save(booking));
     }
 
@@ -218,5 +233,38 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public List<BookingDataDto> getAdminBlockedSlots(String date) {
         return new ArrayList<>();
+    }
+
+    @Override
+    public AnalyticsDto getAnalytics() {
+        List<Booking> all = bookingRepository.findAll();
+        AnalyticsDto analytics = new AnalyticsDto();
+        
+        // Use a more robust date parsing if needed, but for now assuming "MMMM d, yyyy"
+        analytics.setTotalBookings(all.size());
+        
+        String todayStr = LocalDate.now().format(DateTimeFormatter.ofPattern("MMMM d, yyyy"));
+        analytics.setActivePatients(all.stream().filter(b -> todayStr.equals(b.getDate()) && "arrived".equals(b.getStatus())).count());
+        analytics.setActiveSessions(all.stream().filter(b -> todayStr.equals(b.getDate()) && "in_session".equals(b.getStatus())).count());
+
+        // Volume by Day
+        analytics.setVolumeByDay(all.stream()
+            .collect(Collectors.groupingBy(Booking::getDate, Collectors.counting())));
+        
+        // Volume by Month (Extracting month from "Month Date, Year")
+        analytics.setVolumeByMonth(all.stream()
+            .collect(Collectors.groupingBy(b -> b.getDate().split(" ")[0], Collectors.counting())));
+        
+        // Volume by Year (Extracting year from "Month Date, Year")
+        analytics.setVolumeByYear(all.stream()
+            .collect(Collectors.groupingBy(b -> {
+                String[] parts = b.getDate().split(" ");
+                return parts[parts.length - 1];
+            }, Collectors.counting())));
+        
+        analytics.setSpecialtyDistribution(all.stream()
+            .collect(Collectors.groupingBy(Booking::getSpecialty, Collectors.counting())));
+
+        return analytics;
     }
 }

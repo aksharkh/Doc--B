@@ -1,5 +1,6 @@
 package com.example.Doc__B.service;
 
+import com.example.Doc__B.dto.AnalyticsDto;
 import com.example.Doc__B.dto.BookingDataDto;
 
 import java.util.List;
@@ -16,4 +17,5 @@ public interface BookingService {
     List<BookingDataDto> getActiveQueue();
     BookingDataDto updatePatientProfile(String email, BookingDataDto profileData);
     List<BookingDataDto> getAdminBlockedSlots(String date);
+    AnalyticsDto getAnalytics();
 }
